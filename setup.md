@@ -323,3 +323,7 @@ content_copy
 download
 Use code with caution.
 IGNORE_WHEN_COPYING_END
+```
+```
+ipa-client-install --mkhomedir --enable-dns-updates --domain=LAB.EXAMPLE.COM --server=ipa.lab.example.com --realm=LAB.EXAMPLE.COM
+```
