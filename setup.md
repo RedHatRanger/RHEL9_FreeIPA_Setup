@@ -153,7 +153,7 @@ Login with `admin` user and the password.
 
 ---
 
-## Part 2: FreeIPA Client Installation (RHEL 9.5)
+# Part 2: FreeIPA Client Installation (RHEL 9.5)
 
 ### 2.1. Prerequisites
 
@@ -165,12 +165,7 @@ sudo reboot
 
 #### 2.1.2. Configure DNS
 ```bash
-IPA_SERVER_IP="192.168.1.202"
-CONN_NAME=$(nmcli -g NAME,DEVICE c show --active | grep -v ':lo$' | head -n 1 | cut -d':' -f1)
-sudo nmcli con mod "$CONN_NAME" ipv4.dns "$IPA_SERVER_IP"
-sudo nmcli con mod "$CONN_NAME" ipv4.ignore-auto-dns yes
-sudo nmcli con down "$CONN_NAME" && sudo nmcli con up "$CONN_NAME"
-cat /etc/resolv.conf
+yum install ipa
 ```
 
 Verify resolution:
