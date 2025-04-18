@@ -1,4 +1,4 @@
-# 🧑‍💻 Granting Sudo Access to FreeIPA Users
+# 🧑‍💻 Granting Sudo Access to IPA Users
 
 This guide covers how to assign sudo privileges to a FreeIPA user using both the **Web UI** and **CLI**.
 
