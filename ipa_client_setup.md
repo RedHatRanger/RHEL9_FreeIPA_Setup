@@ -18,6 +18,9 @@ yum install ipa-client -y
 ```
 ipa-client-install --mkhomedir --enable-dns-updates --server=ipa.lab.example.com --domain=lab.example.com --realm=LAB.EXAMPLE.COM
 ```
+
+* Output
+```
 ># This program will set up IPA client.
 ># Version 4.12.2
 >
@@ -35,4 +38,4 @@ ipa-client-install --mkhomedir --enable-dns-updates --server=ipa.lab.example.com
 >NTP server: ipa.lab.example.com
 >
 >Continue to configure the system with these values? [no]: yes
-
+```
