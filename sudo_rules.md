@@ -30,22 +30,19 @@ Login as `admin` or another authorized admin user
 
 ### 4. Configure the Rule
 
-#### Users tab
+#### Under `Who>Users`:
 - Click **Add**, then select `john`
 
-#### Commands tab
-- Click **Add**, then choose **Any Command** (or set Command Category to `all`)
+#### Under `Access this host>Hosts`:
+- Click **Add**, then select the enrolled host (e.g., `controller.lab.example.com` or select `Any host`)
 
-#### Hosts tab
-- Click **Add**, then select the enrolled host (e.g., `controller.lab.example.com`)
-
-#### Options tab
-- (Optional) Set Sudo order: `1`
+#### Under `Run Commands>Allow>Sudo Allow Commands`:
+- Click **Add**, then choose **Any Command** (e.g., `/usr/bin/locate`)
 
 ### 5. Save the Rule
-Click **Save** to activate the rule.
+Click **Save** at the top to activate the rule.
 
-### 6. Refresh Policy on the Client
+### 6. Refresh Policy on the Client:
 On the client machine (e.g., `controller.lab.example.com`):
 ```bash
 sudo systemctl restart sssd
@@ -55,11 +52,17 @@ sudo systemctl restart sssd
 Log in as the user:
 ```bash
 su - john
-sudo whoami
 ```
+```
+sudo locate chrony.conf        # As a test
+```
+
 Expected output:
 ```
-root
+/etc/chrony.conf
+/usr/lib/sysusers.d/chrony.conf
+/usr/share/man/man5/chrony.conf.5.gz
+/var/lib/awx/.local/share/containers/storage/overlay/a91b7d030abc1cabfda5fe7d63f5899235001ef54041eb94790e42e178210c32/diff/usr/share/ansible/collections/ansible_collections/redhat/rhel_system_roles/roles/timesync/templates/chrony.conf.j2
 ```
 
 ---
