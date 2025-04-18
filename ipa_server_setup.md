@@ -136,13 +136,31 @@ sudo firewall-cmd --reload
 ```
 
 #### 1.4.2. Set Server to Use Itself as DNS
+Use `nmtui` to configure your active network interface to use the FreeIPA server as its DNS resolver:
+
+1. Run the text-based interface:
+   ```bash
+   sudo nmtui
+   ```
+2. Select **Edit a connection**.
+3. Choose your active network connection (e.g., `Wired connection 1`) and hit **Enter**.
+4. In the IPv4 CONFIGURATION section:
+   - Change **Method** to `Manual`
+   - Enter your static IP address (e.g., `192.168.1.202/24`), gateway, and DNS (e.g., `192.168.1.202`)
+   - Ensure **Automatic DNS** is disabled
+5. Save and exit back to the main menu.
+6. Choose **Activate a connection** → Restart the interface.
+7. Exit `nmtui`
+
+Verify that `/etc/resolv.conf` points to your own IP:
 ```bash
-IPA_SERVER_IP="192.168.1.202"
-CONN_NAME=$(nmcli -g NAME,DEVICE c show --active | grep -v ':lo$' | head -n 1 | cut -d':' -f1)
-sudo nmcli con mod "$CONN_NAME" ipv4.dns "$IPA_SERVER_IP"
-sudo nmcli con mod "$CONN_NAME" ipv4.ignore-auto-dns yes
-sudo nmcli con down "$CONN_NAME" && sudo nmcli con up "$CONN_NAME"
 cat /etc/resolv.conf
+```
+Expected output:
+```
+search lab.example.com
+nameserver 192.168.1.202
+```
 ```
 Expected output:
 ```
