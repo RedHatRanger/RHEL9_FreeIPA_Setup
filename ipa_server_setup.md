@@ -1,6 +1,6 @@
-# FreeIPA Server & Client Installation Guide (RHEL 9.5)
+# FreeIPA Server Installation Guide (RHEL 9.5 — Fresh Install)
 
-This guide provides step-by-step instructions for installing a FreeIPA server with integrated DNS on Red Hat Enterprise Linux (RHEL) 9.5, followed by instructions for enrolling RHEL 9.5 clients.
+This guide provides step-by-step instructions for installing a FreeIPA server with integrated DNS on a freshly installed Red Hat Enterprise Linux (RHEL) 9.5 system.
 
 ---
 
@@ -29,22 +29,34 @@ This guide provides step-by-step instructions for installing a FreeIPA server wi
   - Directory Manager (`cn=Directory Manager`)
   - IPA Admin (`admin`)
 
-### 1.2. Server Prerequisites
+### 1.2. Initial System Preparation
 
-#### 1.2.1. Update System
+#### 1.2.1. Register the System
 ```bash
-sudo dnf update -y
-sudo reboot  # if kernel/core packages updated
+sudo subscription-manager register
+sudo subscription-manager attach --auto
 ```
 
-#### 1.2.2. Set Hostname (FQDN)
+#### 1.2.2. Enable Required Repos
+```bash
+sudo subscription-manager repos --enable=rhel-9-for-x86_64-baseos-rpms
+sudo subscription-manager repos --enable=rhel-9-for-x86_64-appstream-rpms
+```
+
+#### 1.2.3. Update All Packages
+```bash
+sudo dnf update -y
+sudo reboot
+```
+
+#### 1.2.4. Set Hostname (FQDN)
 ```bash
 sudo hostnamectl set-hostname ipa.lab.example.com
 hostnamectl status
 hostname -f  # should return ipa.lab.example.com
 ```
 
-#### 1.2.3. Configure /etc/hosts
+#### 1.2.5. Configure /etc/hosts
 ```bash
 sudo vi /etc/hosts
 ```
@@ -57,38 +69,43 @@ Then verify:
 getent hosts $(hostname -f)
 ```
 
-#### 1.2.4. Verify Network Configuration
-Ensure static IP, gateway, and DNS (e.g. 8.8.8.8) are properly configured via `nmtui` or `nmcli`.
+#### 1.2.6. Configure Static IP and DNS
+Ensure the network connection uses a static IP and temporary DNS (like `8.8.8.8`) via `nmtui` or `nmcli`.
 
-#### 1.2.5. Verify Repositories
+#### 1.2.7. Set SELinux to Enforcing
 ```bash
-sudo dnf repolist enabled | grep -E 'baseos|appstream'
+sudo setenforce 1
+sudo sed -i 's/^SELINUX=.*/SELINUX=enforcing/' /etc/selinux/config
 ```
-You should see baseos and appstream repos enabled.
 
-#### 1.2.6. Install and Sync NTP
+#### 1.2.8. Install Required Packages
 ```bash
-sudo dnf install -y chrony
+sudo dnf install -y firewalld chrony ipa-server ipa-server-dns
+```
+
+#### 1.2.9. Enable and Start Services
+```bash
+sudo systemctl enable --now firewalld
 sudo systemctl enable --now chronyd
+```
+
+#### 1.2.10. Sync NTP Time
+```bash
 sleep 60
 sudo chronyc sources
 ```
 **Do not proceed** until you see `*` or `+` in the chrony sources output.
 
-#### 1.2.7. Stop Conflicting Services
+#### 1.2.11. Stop Conflicting Services
 ```bash
 sudo systemctl stop dnsmasq
 sudo systemctl disable dnsmasq
 ```
 (If using FreeIPA integrated DNS)
 
-### 1.3. Install FreeIPA Server Packages
-```bash
-sudo dnf install -y ipa-server ipa-server-dns
-```
-> Skip `ipa-server-dns` if using external DNS.
+---
 
-### 1.4. Run FreeIPA Installation
+### 1.3. Run FreeIPA Installation
 ```bash
 sudo ipa-server-install --setup-dns
 ```
@@ -102,9 +119,11 @@ Follow the prompts:
 - Confirm configuration and proceed
 - Allow installer to configure firewall and chrony (recommended)
 
-### 1.5. Post-Installation
+---
 
-#### 1.5.1. Verify Firewall Services
+### 1.4. Post-Installation
+
+#### 1.4.1. Verify Firewall Services
 ```bash
 sudo firewall-cmd --list-services
 ```
@@ -116,7 +135,7 @@ sudo firewall-cmd --permanent --add-service={http,https,ldap,ldaps,kerberos,kpas
 sudo firewall-cmd --reload
 ```
 
-#### 1.5.2. Set Server to Use Itself as DNS
+#### 1.4.2. Set Server to Use Itself as DNS
 ```bash
 IPA_SERVER_IP="192.168.1.202"
 CONN_NAME=$(nmcli -g NAME,DEVICE c show --active | grep -v ':lo$' | head -n 1 | cut -d':' -f1)
@@ -131,92 +150,25 @@ search lab.example.com
 nameserver 192.168.1.202
 ```
 
-#### 1.5.3. Authenticate as Admin
+#### 1.4.3. Authenticate as Admin
 ```bash
 kinit admin
 klist
 ```
 
-#### 1.5.4. Test DNS
+#### 1.4.4. Test DNS
 ```bash
 dig @localhost ipa.lab.example.com A +short
 dig @localhost -x 192.168.1.202 +short
 dig @localhost _ldap._tcp.lab.example.com SRV +short
 ```
 
-#### 1.5.5. Access the Web UI
+#### 1.4.5. Access the Web UI
 Ensure client or management machine resolves `ipa.lab.example.com`. Open browser:
 ```
 https://ipa.lab.example.com
 ```
 Login with `admin` user and the password.
-
----
-
-# Part 2: FreeIPA Client Installation (RHEL 9.5)
-
-### 2.1. Prerequisites
-
-#### 2.1.1. Update System
-```bash
-sudo dnf update -y
-sudo reboot
-```
-
-#### 2.1.2. Configure DNS
-```bash
-yum install ipa
-```
-
-Verify resolution:
-```bash
-dig ipa.lab.example.com A +short
-dig _ldap._tcp.lab.example.com SRV +short
-```
-
-#### 2.1.3. Sync Time
-```bash
-sudo dnf install -y chrony
-sudo systemctl enable --now chronyd
-sleep 10
-sudo chronyc sources
-```
-
-#### 2.1.4. Set Hostname
-```bash
-sudo hostnamectl set-hostname <client-name>.lab.example.com
-```
-
-### 2.2. Install IPA Client
-```bash
-sudo dnf install -y ipa-client
-```
-
-### 2.3. Run IPA Client Install
-```bash
-sudo ipa-client-install --mkhomedir --enable-dns-updates \
-  --server=ipa.lab.example.com \
-  --domain=lab.example.com \
-  --realm=LAB.EXAMPLE.COM
-```
-> Use `--force-join` if re-enrolling an existing client.
-
-### 2.4. Post-Install Verification
-
-#### 2.4.1. Verify Access
-```bash
-ipa user-find admin
-```
-
-Create a test user in the IPA Web UI, then on the client:
-```bash
-su - testuser
-pwd   # should show /home/testuser
-exit
-```
-
-#### 2.4.2. Client Firewall
-Clients don’t need incoming port access unless running specific services. Ensure **outbound** access to server’s ports.
 
 ---
 
