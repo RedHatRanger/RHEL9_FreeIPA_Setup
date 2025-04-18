@@ -324,6 +324,10 @@ download
 Use code with caution.
 IGNORE_WHEN_COPYING_END
 ```
+
+## Installing IPA on the Clients:
 ```
 ipa-client-install --mkhomedir --enable-dns-updates --domain=LAB.EXAMPLE.COM --server=ipa.lab.example.com --realm=LAB.EXAMPLE.COM
+
+firewall-cmd --permanent --add-port={80/tcp,88/tcp,464/tcp,123/tcp,389/tcp}; firewall-cmd --reload
 ```
