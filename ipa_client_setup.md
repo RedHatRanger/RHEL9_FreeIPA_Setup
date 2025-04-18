@@ -15,7 +15,6 @@ yum install ipa-client -y
 3 - Configure the Firewalld ports:
 ```
 ```
-```
 
 4 - Join the Client to the Domain:
 ```
