@@ -39,3 +39,13 @@ ipa-client-install --mkhomedir --enable-dns-updates --server=ipa.lab.example.com
 >
 >Continue to configure the system with these values? [no]: yes
 ```
+
+* Done!
+
+
+---
+
+# To modify a user to never expire:
+```
+ipa user-mod testuser --password-expiration=
+```
