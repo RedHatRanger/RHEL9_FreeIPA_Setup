@@ -47,6 +47,14 @@ ipa-client-install --mkhomedir --enable-dns-updates --server=ipa.lab.example.com
 
 ---
 
+## To add a user:
+```
+ipa user-add testuser --first=Test --last=User --password
+
+# When prompted, enter the password twice
+
+```
+
 ## To modify a user to never expire:
 ```
 ipa user-mod testuser --password-expiration=
